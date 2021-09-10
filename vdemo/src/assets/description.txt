@@ -1,0 +1,4 @@
+assets：这个目录用来存放像 CSS 、图片这种静态资源，但是因为它们属于代码目录下，所以可以用 webpack 来操作和处理。
+意思就是你可以使用一些预处理比如 Sass/SCSS 或者 Stylus。
+
+.browserslistrc: 这个是 Browserslist 的配置文件，可以通过它来控制需要对哪些浏览器进行支持和优化。
