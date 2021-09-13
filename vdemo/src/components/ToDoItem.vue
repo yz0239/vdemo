@@ -4,16 +4,39 @@
   <!-- 现在我们需要在模板中添加一些CSS类来连接样式。
   在根中，添加一个自定义复选框类。在<input>中添加一个复选框类。最后，在<label>中添加一个checkbox-label类。更新后的模板如下:
   应用程序现在应该有自定义复选框。你的应用应该如下图所示。 -->
-  <div class="custom-checkbox">
-    <input
-      type="checkbox"
-      :id="id"
-      :checked="isDone"
-      class="checkbox"
-      @change="$emit('checkbox-changed')"
-    />
-    <label :for="id" class="checkbox-label">{{ label }}</label>
+  <div class="stack-small" v-if="!isEditing">
+    <div class="custom-checkbox">
+      <input
+        type="checkbox"
+        :id="id"
+        :checked="isDone"
+        class="checkbox"
+        @change="$emit('checkbox-changed')"
+      />
+      <label :for="id" class="checkbox-label">{{ label }}</label>
+    </div>
+    <div class="btn-group">
+      <button
+        type="button"
+        class="btn"
+        ref="editButton"
+        @click="toggleToItemEditForm"
+      >
+        Edit <span class="visually-hidden">{{ label }}</span>
+      </button>
+      <button type="button" class="btn btn__danger" @click="deleteToDo">
+        Delete <span class="visually-hidden">{{ label }}</span>
+      </button>
+    </div>
   </div>
+  <to-do-item-edit-form
+    v-else
+    :id="id"
+    :label="label"
+    @item-edited="itemEdited"
+    @edit-cancelled="editCancelled"
+  >
+  </to-do-item-edit-form>
 </template>
 <script>
 // 我们现在可以将此包导入到我们的ToDoItem组件中。在ToDoItem.vue的<script>元素顶部添加以下行：
@@ -24,9 +47,13 @@
 // 标记它为required，类型是 String 。
 // 为防止命名冲突，删除掉data属性中的id字段。
 // 删除掉 import uniqueId from 'lodash.uniqueid'; 这行。
+import ToDoItemEditForm from "./ToDoItemEditForm";
 
 // 默认导出对象--组件对象
 export default {
+  components: {
+    ToDoItemEditForm,
+  },
   props: {
     // label键的值应该是一个具有2个属性的对象(或props，因为它们在组件可用的上下文中被调用)。
     // 第一个是required属性，其值为true。这将告诉 Vue 我们希望这个组件的每个实例都有一个标签字段。
@@ -58,10 +85,41 @@ export default {
       // Vue 有一种特殊的语法来将 JavaScript 表达式绑定到 HTML 元素和组件：v-bind.
       // 该v-bind表达式如下所示：
       // v-bind:attribute="expression"
-      isDone: this.done,
+      // isDone: this.done,
       // 接下来，id向我们的数据属性添加一个字段，因此组件对象最终看起来像这样（uniqueId()返回指定的前缀 — todo-— 附加一个唯一的字符串）：
       //   id: uniqueId("todo-"),
+      isEditing: false,
     };
+  },
+  computed: {
+    isDone() {
+      return this.done;
+    },
+  },
+  methods: {
+    deleteToDo() {
+      this.$emit("item-deleted");
+    },
+    toggleToItemEditForm() {
+      console.log(this.$refs.editButton);
+      this.isEditing = true;
+    },
+    itemEdited(newLabel) {
+      this.$emit("item-edited", newLabel);
+      this.isEditing = false;
+      this.focusOnEditButton();
+    },
+    editCancelled() {
+      this.isEditing = false;
+      this.focusOnEditButton();
+    },
+    focusOnEditButton() {
+      this.$nextTick(() => {
+        const editButtonRef = this.$refs.editButton;
+        editButtonRef.focus();
+        console.log(this);
+      });
+    },
   },
   // 给 Todos 一个唯一的 id
   // 伟大的！我们现在有一个可用的复选框，我们可以在其中以编程方式设置状态。

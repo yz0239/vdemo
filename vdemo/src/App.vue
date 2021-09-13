@@ -8,7 +8,7 @@
     使用@简写，监听器看起来像这样: -->
     <to-do-form @todo-added="addToDo"></to-do-form>
 
-    <h2 id="list-summary">{{ listSummary }}</h2>
+    <h2 id="list-summary" ref="listSummary" tabindex="-1">{{ listSummary }}</h2>
     <!-- 我们还将stack-large类添加到文件中的<ul>标记中App.vue。这将有助于稍微改善我们的待办事项的间距。
     更新如下： -->
     <ul aria-labelledby="list-summary" class="stack-large">
@@ -27,7 +27,10 @@
           :done="item.done"
           :id="item.id"
           @checkbox-changed="updateDoneStatus(item.id)"
-        ></to-do-item>
+          @item-deleted="deleteToDo(item.id)"
+          @item-edited="editToDo(item.id, $event)"
+        >
+        </to-do-item>
         <!-- 你渲染后的站点看起来是没有变化的，但是这次重构使得item.id像其他参数一样，作为prop从App.vue传递给ToDoItem。现在代码变得更有逻辑性和一致。 -->
       </li>
     </ul>
@@ -126,6 +129,15 @@ export default {
     updateDoneStatus(toDoId) {
       const toDoToUpdate = this.ToDoItems.find((item) => item.id === toDoId);
       toDoToUpdate.done = !toDoToUpdate.done;
+    },
+    deleteToDo(toDoId) {
+      const itemIndex = this.ToDoItems.findIndex((item) => item.id === toDoId);
+      this.ToDoItems.splice(itemIndex, 1);
+      this.$refs.listSummary.focus();
+    },
+    editToDo(toDoId, newLabel) {
+      const toDoToEdit = this.ToDoItems.find((item) => item.id === toDoId);
+      toDoToEdit.label = newLabel;
     },
   },
   computed: {
